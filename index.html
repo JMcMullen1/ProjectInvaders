@@ -1,0 +1,1746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>APM Lifecycle Quiz Invaders</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.3/p5.min.js"></script>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: black;
+      color: white;
+      font-family: Arial, sans-serif;
+    }
+    canvas {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <script>
+
+// APM Lifecycle Quiz Invaders
+
+// Question Pools
+const questions = [
+  { text: "A project lifecycle provides a structured approach to project delivery.", answer: true, explanation: "Project lifecycles provide a structured framework, guiding projects from start to finish with defined phases." },
+  { text: "All projects should follow the same lifecycle regardless of their complexity or context.", answer: false, explanation: "No, different projects benefit from different lifecycles (e.g., linear for stable requirements, iterative for evolving ones)." },
+  { text: "The Concept phase helps explore the need, feasibility, and options before detailed planning begins.", answer: true, explanation: "The Concept phase (or 'Identification') is crucial for early exploration, assessing viability and initial options." },
+  { text: "In the Definition phase, the main focus is handing over deliverables to the client.", answer: false, explanation: "Handover is typically in the Deployment/Handover phase. Definition focuses on detailed planning and requirements." },
+  { text: "The Development phase is where most of the work and deliverables are created.", answer: true, explanation: "The Development (or 'Execution') phase is where the planned work is performed, and project outputs are produced." },
+  { text: "Handover and Closure are part of the Concept phase.", answer: false, explanation: "Handover and Closure are distinct final phases, occurring after Development/Deployment, not at the beginning." },
+  { text: "An iterative lifecycle is useful when requirements are uncertain or likely to evolve.", answer:true, explanation: "Iterative lifecycles allow for repeated cycles of planning, execution, and review, ideal for evolving requirements." },
+  { text: "Linear lifecycles do not allow you to revisit earlier phases once completed.", answer: true, explanation: "In a pure linear lifecycle, phases are sequential, and returning to a previous phase is generally not intended." },
+  { text: "The hybrid lifecycle blends the structure of Linear with the flexibility of Iterative.", answer: true, explanation: "Hybrid approaches combine elements of both linear and iterative lifecycles to suit specific project needs." },
+  { text: "The purpose of Closure is to validate benefits and ensure lessons are captured.", answer: true, explanation: "Closure ensures project benefits are realized, lessons learned are documented, and formal handover is complete." },
+  { text: "Lifecycle phases must always follow the same order with no overlap.", answer: false, explanation: "Phases can overlap, especially in iterative or agile methodologies, and the order can be adapted." },
+  { text: "Incremental and iterative are different terms for the same thing.", answer: false, explanation: "Iterative means repeating phases to refine, while incremental means delivering small, usable parts sequentially." },
+  { text: "The lifecycle helps stakeholders understand what to expect at each stage.", answer: true, explanation: "A defined lifecycle provides transparency and clarity on activities and deliverables at each stage for stakeholders." },
+  { text: "The APM lifecycle includes phases like Initiation, Execution, and Monitoring.", answer: false, explanation: "The APM lifecycle's 5 phases are Concept, Definition, Development, Deployment, and Transition." }, // APM-specific
+  { text: "In Agile, the lifecycle is typically iterative or incremental.", answer: true, explanation: "Agile methodologies often use iterative (e.g., sprints) and incremental (e.g., frequent releases) approaches." },
+  { text: "Using a lifecycle guarantees that a project will succeed.", answer: false, explanation: "No, a lifecycle provides structure but project success depends on many factors, including management, team, and external influences." },
+  { text: "A clear project lifecycle supports effective governance and decision-making.", answer: true, explanation: "By defining stages and review points, a lifecycle establishes clear governance and facilitates informed decisions." },
+  { text: "Feedback loops are a key characteristic of Linear lifecycles.", answer: false, explanation: "Feedback loops are more characteristic of iterative and agile lifecycles, enabling continuous improvement." },
+  { text: "The lifecycle helps determine when reviews and approvals take place.", answer: true, explanation: "Formal phase gates or reviews are often embedded within a lifecycle to ensure quality and approval points." },
+  { text: "The APM lifecycle is only relevant to IT or software projects.", answer: false, explanation: "The APM lifecycle is a generic framework applicable to a wide range of project types, not just IT/software." }
+];
+
+const bossQuestions = [
+  { text: "A key purpose of the Definition phase is to secure funding by presenting a detailed business case.", answer: true, explanation: "The Definition phase formalizes project scope and plans, often culminating in a business case to secure necessary funding." },
+  { text: "In an iterative lifecycle, value is only delivered in a single release at the project's end.", answer: false, explanation: "Iterative lifecycles aim for frequent, smaller deliveries of value throughout the project, not just at the end." },
+  { text: "'Benefits Realisation' is a process exclusively confined to the Handover and Closure phase.", answer: false, explanation: "Benefits realization is an ongoing process throughout a project's lifecycle, though formally reviewed at closure." },
+  { text: "A project's lifecycle must be selected before the project sponsor is identified.", answer: false, explanation: "The project sponsor is often crucial in determining the appropriate lifecycle, as they represent the project's strategic context." },
+  { text: "A 'Gate Review' is an optional meeting that can be skipped to accelerate project delivery.", answer: false, explanation: "Gate reviews are critical control points for assessing project health and making go/no-go decisions, not optional." },
+  // New Boss Questions (25 more for a total of 30)
+  { text: "Risk registers are only updated at the beginning of a project.", answer: false, explanation: "Risk management is an ongoing process; risk registers must be continuously reviewed and updated throughout the project lifecycle." },
+  { text: "The Business Case outlines the justification for a project.", answer: true, explanation: "The Business Case provides the rationale and justification for undertaking a project, detailing its objectives, benefits, and costs." },
+  { text: "A Work Breakdown Structure (WBS) breaks project deliverables into smaller, manageable components.", answer: true, explanation: "A WBS is a hierarchical decomposition of the total scope of work to be carried out by the project team to accomplish project objectives." },
+  { text: "Stakeholder engagement is a one-time activity at project kickoff.", answer: false, explanation: "Effective stakeholder engagement is a continuous process throughout the entire project lifecycle, adapting to changing needs and influences." },
+  { text: "Crashing a project schedule always results in cost savings.", answer: false, explanation: "Crashing a project (accelerating it) often involves adding resources or working overtime, which typically increases project costs, not reduces them." },
+  { text: "Project success is solely measured by completing on time and within budget.", answer: false, explanation: "Project success is a multifaceted concept, also encompassing quality, benefits realization, and stakeholder satisfaction, beyond just time and cost." },
+  { text: "A Change Control process ensures all project changes are approved and managed.", answer: true, explanation: "A formal Change Control process is essential to manage any modifications to project scope, schedule, or budget in a structured and approved manner." },
+  { text: "Lessons Learned workshops are optional and can be skipped to save time at project end.", answer: false, explanation: "Lessons learned workshops are crucial for organizational learning and continuous improvement, providing valuable insights for future projects." },
+  { text: "The critical path represents the shortest duration to complete a project.", answer: false, explanation: "The critical path is the longest sequence of dependent activities in a project schedule, determining the earliest possible completion time." },
+  { text: "Monitoring and Control is a phase unique to Agile lifecycles.", answer: false, explanation: "Monitoring and Control activities are integral to all project lifecycles, ensuring project performance aligns with plans and deviations are addressed." },
+  { text: "Project Management Plans are static documents never updated after approval.", answer: false, explanation: "Project Management Plans are living documents that evolve throughout the project, updated as new information or changes arise." },
+  { text: "A RACI matrix clarifies roles and responsibilities for project activities.", answer: true, explanation: "A RACI matrix (Responsible, Accountable, Consulted, Informed) is a common tool for clearly defining roles and responsibilities for project tasks." },
+  { text: "Earned Value Management (EVM) is a technique for performance measurement.", answer: true, explanation: "Earned Value Management is a project management methodology that integrates scope, schedule, and cost to objectively measure project performance." },
+  { text: "Procurement in project management always involves external vendors.", answer: false, explanation: "Procurement can involve acquiring goods or services from both external vendors and internal organizational units." },
+  { text: "Quality management in a project focuses solely on the final product's functionality.", answer: false, explanation: "Project quality management ensures both the final product/service meets requirements AND the project processes are efficient and effective." },
+  { text: "Conflict resolution is not a core skill for a project manager.", answer: false, explanation: "Conflict resolution is a critical interpersonal skill for project managers to effectively manage disagreements and maintain team harmony." },
+  { text: "The Project Charter formally authorizes the project.", answer: true, explanation: "The Project Charter is the document that formally authorizes the existence of a project and provides the project manager with authority." },
+  { text: "Resource leveling aims to optimize resource utilization to avoid over-allocation.", answer: true, explanation: "Resource leveling is a technique used to smooth out the demand for resources over the project's duration, preventing over-allocation and burnout." },
+  { text: "Post-project review is part of the Deployment phase.", answer: false, explanation: "Post-project reviews, including benefits realization assessment, occur during the Closure/Transition phase, after deployment." },
+  { text: "User Stories are primarily used in Linear lifecycles.", answer: false, explanation: "User Stories are a common agile practice, defining small, deliverable pieces of functionality from an end-user's perspective." },
+  { text: "Configuration management is only relevant for software development projects.", answer: false, explanation: "Configuration management is a systematic approach to managing changes to project products, services, or results, applicable across various industries." },
+  { text: "A positive Net Present Value (NPV) typically indicates a financially viable project.", answer: true, explanation: "A positive Net Present Value (NPV > 0) suggests that the project is expected to generate more cash inflows than outflows, making it financially attractive." },
+  { text: "Communication Management Plans define how project information will be distributed.", answer: true, explanation: "A Communication Management Plan details what information will be communicated, to whom, when, by whom, and how, ensuring effective information flow." },
+  { text: "Lag in a project schedule implies a delay between dependent activities.", answer: true, explanation: "Lag is a dependency that dictates a delay between the finish of a predecessor activity and the start of a successor activity." },
+  { text: "Contingency reserves are funds allocated for identified, but uncertain, risks.", answer: true, explanation: "Contingency reserves are amounts of money or time added to a project's budget or schedule to cover known-unknown risks." }
+];
+
+let player = null; // Initialize player as null, will be set in setup()
+let bullets = [];
+let invaders = [];
+let boss;
+let hearts = [];
+let enemyBullets = [];
+let explosions = []; // Array to hold explosion particles
+let bossMinions = []; // NEW: Array to hold boss minions
+
+let score = 0;
+let lives = 3;
+let level = 1;
+let maxLives = 5;
+
+let currentQuestion; // The question currently displayed at the top
+let questionForExplanation; // Stores the question and the explanation for the pause screen
+let lastAnswerWasCorrect = false; // Stores if the last answer was correct for the explanation screen
+
+let shuffledQuestions;
+let shuffledBossQuestions;
+
+let gameState = 'startScreen'; // Initial game state is 'startScreen'
+
+// Timer variables for level start countdown
+let levelStartTime; // Stores millis() when level starts
+const countdownDuration = 5000; // 5 seconds in milliseconds
+
+// Sound variables removed
+
+// Starry background variables
+let stars = [];
+const NUM_STARS = 300; // Number of stars in the background
+
+// Intro Scroll specific variables
+let introScrollY = 0;
+const INTRO_SCROLL_SPEED = 0.8; // pixels per frame
+const INTRO_TEXT_START_OFFSET_Y = 300; // How far below the screen the text starts
+
+const INTRO_TEXT = [
+  "A long time ago, in a galaxy very, very close...",
+  "",
+  "PROJECT INVADERS",
+  "",
+  "",
+  `A new threat has emerged! Aliens, cunning and relentless,
+have begun to infiltrate projects across the globe.`,
+  "",
+  `They are sowing chaos in Gantt charts, spreading confusion
+in Agile sprints, and turning critical paths into spaghetti
+noodles!`,
+  "",
+  `Traditional weapons are useless against their
+insidious methods. Only one thing can stop them:`,
+  "",
+  "A superior knowledge of Project Lifecycle Management!",
+  "",
+  "And, of course, a giant, perfectly-tuned laser cannon.",
+  "",
+  `You are the last line of defense, Earth's Project Manager.
+Your mission: destroy the alien invaders, answer their
+tricky questions correctly, and restore order to the
+project universe!`,
+  "",
+  "",
+  `May your milestones be met and your budgets balanced.
+Good luck!`
+];
+
+// Start Screen graphic animation variables
+let startScreenBulletX = null; // Initialize to null, will be set in setup
+let startScreenBulletY = null; // Initialize to null, will be set in setup
+let startScreenExplosionAnimFrame = 0;
+const START_EXPLOSION_MAX_SIZE = 100;
+const START_EXPLOSION_FRAMES = 30; // How many frames the explosion lasts
+
+// Helper function to shuffle an array
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = floor(random(i + 1)); // Use floor(random(i+1)) for integer indices
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+}
+
+// Star class for the background
+class Star {
+  constructor() {
+    this.x = random(width);
+    this.y = random(height);
+    this.size = random(1, 3); // Varying sizes for stars
+    this.initialBrightness = random(100, 255); // Varying initial brightness
+    this.twinkleOffset = random(1000); // Unique offset for each star's twinkle
+  }
+
+  show() {
+    let currentBrightness = this.initialBrightness;
+    // Apply a sine wave to create a twinkling effect
+    currentBrightness += sin(frameCount * 0.05 + this.twinkleOffset) * 50;
+    currentBrightness = constrain(currentBrightness, 0, 255); // Ensure brightness stays within valid range
+
+    fill(255, currentBrightness); // White stars with dynamic alpha (brightness)
+    noStroke();
+    ellipse(this.x, this.y, this.size);
+  }
+}
+
+// ExplosionParticle class
+class ExplosionParticle {
+  constructor(x, y, color) {
+    this.x = x;
+    this.y = y;
+    this.vx = random(-2, 2);
+    this.vy = random(-2, 2);
+    this.color = color;
+    this.alpha = 255;
+    this.lifeSpan = random(30, 60); // Frames
+  }
+
+  update() {
+    this.x += this.vx;
+    this.y += this.vy;
+    this.alpha -= (255 / this.lifeSpan); // Fade out
+    this.lifeSpan--;
+  }
+
+  show() {
+    fill(this.color.levels[0], this.color.levels[1], this.color.levels[2], this.alpha);
+    noStroke();
+    ellipse(this.x, this.y, 4, 4);
+  }
+
+  isDead() {
+    return this.lifeSpan <= 0;
+  }
+}
+
+// Function to create an explosion
+function createExplosion(x, y, baseColor) {
+  let numParticles = random(10, 20); // Number of particles per explosion
+  for (let i = 0; i < numParticles; i++) {
+    explosions.push(new ExplosionParticle(x, y, baseColor));
+  }
+  // Removed sound
+}
+
+class Player {
+  constructor() {
+    this.x = width / 2;
+    this.width = 100; // Overall width of the cannon base
+    this.height = 70; // Overall visual height of the cannon
+    this.y = height - this.height; // Top-most point of the cannon (where barrel starts)
+    this.speed = 7;
+
+    // Color palette for different cannon parts for a detailed look
+    this.baseColor = color(30, 30, 100); // Darker, deep blue for the foundation
+    this.bodyColor = color(60, 60, 180); // Medium blue for the main housing
+    this.barrelColor = color(100, 100, 250); // Lighter, more vibrant blue for the barrel
+    this.glowColor = color(50, 200, 255); // Cyan/electric blue for glowing parts
+  }
+
+  show() {
+    push();
+    noStroke();
+
+    // Calculate common Y coordinates based on total height and relative proportions
+    const baseBottomY = height;
+    const baseHeight = this.height * 0.25;
+    const bodyHeight = this.height * 0.35;
+    const barrelLength = this.height * 0.4;
+
+    const baseTopY = baseBottomY - baseHeight;
+    const bodyTopY = baseTopY - bodyHeight;
+    const barrelTopY = bodyTopY - barrelLength; // This is actually this.y
+
+    // --- 1. Sloped Base ---
+    const baseBottomWidth = this.width;
+    const baseTopWidth = this.width * 0.7; // Tapered top
+    fill(this.baseColor);
+    beginShape();
+    vertex(this.x - baseBottomWidth / 2, baseBottomY); // Bottom-left
+    vertex(this.x + baseBottomWidth / 2, baseBottomY); // Bottom-right
+    vertex(this.x + baseTopWidth / 2, baseTopY);      // Top-right
+    vertex(this.x - baseTopWidth / 2, baseTopY);      // Top-left
+    endShape(CLOSE);
+
+    // --- 2. Main Body ---
+    const bodyWidth = this.width * 0.6;
+    rectMode(CENTER); // Use center mode for this rectangle
+    fill(this.bodyColor);
+    rect(this.x, bodyTopY + bodyHeight / 2, bodyWidth, bodyHeight);
+
+    // --- 3. Tapered Barrel ---
+    const barrelBaseWidth = bodyWidth * 0.5; // Barrel width at its base
+    const barrelTipWidth = barrelBaseWidth * 0.7; // Barrel width at its tip (muzzle)
+    fill(this.barrelColor);
+    beginShape();
+    vertex(this.x - barrelBaseWidth / 2, bodyTopY); // Bottom-left of barrel
+    vertex(this.x + barrelBaseWidth / 2, bodyTopY); // Bottom-right of barrel
+    vertex(this.x + barrelTipWidth / 2, barrelTopY);     // Top-right of barrel (muzzle)
+    vertex(this.x - barrelTipWidth / 2, barrelTopY);     // Top-left of barrel (muzzle)
+    endShape(CLOSE);
+    
+    // --- 4. Energy Core/Glow ---
+    const glowRadius = bodyWidth * 0.2;
+    fill(this.glowColor, 150); // Semi-transparent glow
+    ellipseMode(CENTER);
+    ellipse(this.x, bodyTopY + bodyHeight * 0.3, glowRadius * 2, glowRadius * 0.8); // Wider, squashed ellipse
+
+    // --- 5. Muzzle Opening ---
+    fill(10, 10, 30); // Darker color for depth
+    ellipse(this.x, barrelTopY, barrelTipWidth * 0.8, barrelTipWidth * 0.3); // Flat oval at the very top
+
+    // --- 6. Side Fins/Accents ---
+    const finHeight = bodyHeight * 0.3;
+    const finWidth = bodyWidth * 0.15; // Width of the base of the triangle
+    fill(this.glowColor); // Use glow color for accents
+    // Left fin
+    triangle(
+        this.x - bodyWidth / 2, bodyTopY + bodyHeight * 0.2, // Point on body edge
+        this.x - bodyWidth / 2 - finWidth, bodyTopY + bodyHeight * 0.2 + finHeight / 2, // Outer point
+        this.x - bodyWidth / 2, bodyTopY + bodyHeight * 0.2 + finHeight // Back point on body edge
+    );
+    // Right fin
+    triangle(
+        this.x + bodyWidth / 2, bodyTopY + bodyHeight * 0.2, // Point on body edge
+        this.x + bodyWidth / 2 + finWidth, bodyTopY + bodyHeight * 0.2 + finHeight / 2, // Outer point
+        this.x + bodyWidth / 2, bodyTopY + bodyHeight * 0.2 + finHeight // Back point on body edge
+    );
+
+    pop();
+  }
+
+  move() {
+    if (keyIsDown(LEFT_ARROW) && this.x > this.width / 2) {
+      this.x -= this.speed;
+    }
+    if (keyIsDown(RIGHT_ARROW) && this.x < width - this.width / 2) {
+      this.x += this.speed;
+    }
+  }
+
+  shoot() {
+    bullets.push(new Bullet(this.x, this.y));
+    // Removed sound
+  }
+}
+
+class Bullet {
+  constructor(x, y, fromPlayer = true) {
+    this.x = x;
+    this.y = y;
+    this.r = 8;
+    this.speed = fromPlayer ? -10 : 5 + level * 0.2;
+    this.fromPlayer = fromPlayer;
+  }
+
+  move() {
+    this.y += this.speed;
+  }
+
+  show() {
+    fill(this.fromPlayer ? color(255, 255, 0) : color(255, 100, 100));
+    noStroke();
+    ellipse(this.x, this.y, this.r * 2);
+  }
+
+  offscreen() {
+    return this.y < 0 || this.y > height;
+  }
+
+  hits(target) {
+    let d;
+    // Modified: Added BossMinion to the list of targets that can be hit by radius
+    if (target instanceof Invader || target instanceof Boss || target instanceof BossMinion || target instanceof Heart) { 
+      d = dist(this.x, this.y, target.x, target.y);
+      return d < this.r + target.r; // collision based on radius still works for general shape
+    } else if (target instanceof Player) {
+       // Check if bullet's X is within player's width, and Y is within player's total height
+       return (this.x > target.x - target.width/2 && this.x < target.x + target.width/2 && this.y > target.y && this.y < target.y + target.height);
+    }
+    return false; // No collision if target type not recognized
+  }
+
+  hitsWeakpoint(weakpoint) {
+      let d = dist(this.x, this.y, weakpoint.x, weakpoint.y);
+      return d < this.r + weakpoint.r;
+  }
+}
+
+
+class Invader {
+  constructor(initialX, y, displayedBooleanValue) { // This value dictates what text it shows (TRUE/FALSE)
+    this.initialX = initialX; // Store the initial X to oscillate around
+    this.x = initialX; // Current X position, will change in move()
+    this.y = y;
+    this.r = 30; // Radius for collision detection and base size
+    this.displayedBooleanValue = displayedBooleanValue; // e.g., true if it displays 'TRUE', false if 'FALSE'
+    this.isCorrectChoiceForQuestion = false; // This will be set externally in setupLevel based on the question's answer
+
+    // Color based on its displayed value
+    this.color = this.displayedBooleanValue ? color(0, 200, 100) : color(200, 50, 50);
+    this.hitsRequired = level >= 10 ? 2 : 1;
+    this.hp = this.hitsRequired;
+
+    // New movement properties for horizontal oscillation and controlled vertical speed
+    this.verticalSpeed = 0.5 + level * 0.05; // Base vertical speed, increases with level
+    this.verticalDirection = 1; // 1 for down, -1 for up
+    this.minY = 150; // Upper limit for vertical patrol (roughly initial spawn height)
+    this.maxY = height * 0.75; // The new bottom limit for vertical patrol (3/4 of the screen)
+
+    // Amplitude: Ranges from 10% to 28% of canvas width, allowing crossing
+    this.oscillationAmplitude = map(level, 1, 20, width * 0.1, width * 0.28, true); 
+    // Frequency: How fast it oscillates, increases with level
+    this.oscillationFrequency = map(level, 1, 20, 0.015, 0.04, true); 
+    this.oscillationPhaseOffset = 0; // Default, will be set in setupLevel for the pair
+
+    // Shooting properties for invaders
+    this.shootChance = map(level, 1, 20, 0.003, 0.015, true); // Chance to shoot per frame (e.g., 0.3% to 1.5%)
+  }
+
+  show() {
+    push();
+    noStroke();
+    ellipseMode(CENTER);
+
+    // Main UFO body
+    fill(this.color);
+    ellipse(this.x, this.y + this.r * 0.2, this.r * 2.2, this.r * 1.2); // Slightly wider and flatter base
+
+    // UFO cockpit / dome
+    fill(this.color.levels[0], this.color.levels[1], this.color.levels[2], 180); // Slightly transparent version of main color
+    ellipse(this.x, this.y - this.r * 0.4, this.r * 1.2, this.r * 1.0); // Smaller, more circular top
+
+    // Highlight / window on cockpit
+    fill(150, 200, 255, 100); // Light blue, transparent
+    ellipse(this.x + this.r * 0.3, this.y - this.r * 0.45, this.r * 0.6, this.r * 0.3);
+
+    // Outline for the whole UFO
+    stroke(255);
+    strokeWeight(2);
+    ellipse(this.x, this.y + this.r * 0.2, this.r * 2.2, this.r * 1.2);
+    ellipse(this.x, this.y - this.r * 0.4, this.r * 1.2, this.r * 1.0);
+
+
+    // Text (TRUE/FALSE)
+    fill(255); // White text
+    textAlign(CENTER, CENTER);
+    textSize(20);
+    text(this.displayedBooleanValue ? 'TRUE' : 'FALSE', this.x, this.y); // Display text based on this.displayedBooleanValue
+
+    // Health Bar (if multi-hit)
+    if(this.hitsRequired > 1) {
+        fill(255, 255, 0, 150); // Yellow, semi-transparent
+        // Positioned slightly below the main body of the UFO
+        rect(this.x - this.r, this.y + this.r * 1.2, this.r * 2 * (this.hp / this.hitsRequired), 5);
+    }
+    pop();
+  }
+
+  update() { // New update method for Invader
+    // Horizontal oscillation: current x = initial x + sin(time * frequency + phase_offset) * amplitude
+    this.x = this.initialX + sin(frameCount * this.oscillationFrequency + this.oscillationPhaseOffset) * this.oscillationAmplitude;
+    
+    // Vertical movement
+    this.y += this.verticalSpeed * this.verticalDirection;
+
+    // Reverse vertical direction if limits are hit
+    if (this.verticalDirection === 1 && this.y >= this.maxY) {
+      this.y = this.maxY; // Snap to limit to prevent overshooting
+      this.verticalDirection = -1;
+    } else if (this.verticalDirection === -1 && this.y <= this.minY) {
+      this.y = this.minY; // Snap to limit
+      this.verticalDirection = 1;
+    }
+
+    // Invader shooting logic
+    // Only shoot if within vertical patrol range and above player
+    if (this.y < height * 0.8 && random(1) < this.shootChance) {
+        enemyBullets.push(new Bullet(this.x, this.y + this.r, false)); // Shoot downwards from its center
+        // Removed sound
+    }
+  }
+
+  takeDamage() {
+      this.hp--;
+      if (this.hp <= 0) {
+          return true; // destroyed
+      }
+      return false; // damaged but not destroyed
+  }
+}
+
+// NEW: Boss Minion Class
+class BossMinion {
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.r = 25; // Larger radius
+        this.speed = 2 + level * 0.1; // Base speed, increases with level
+        this.vx = random(-this.speed, this.speed);
+        this.vy = random(-this.speed, this.speed);
+        this.maxSpeed = 4 + level * 0.2; // Maximum speed limit for movement
+        this.thrustForce = 0.1 + level * 0.01; // How much it accelerates in a new direction
+        this.noiseOffset = random(1000); // Unique offset for Perlin noise
+
+        this.shootInterval = max(30, 90 - level * 3); // Shoot every X frames, faster with levels, min 30 frames
+        this.shootTimer = 0;
+
+        this.color = color(80, 0, 120); // Dark purple
+        this.accentColor = color(255, 50, 0); // Fiery red/orange for aggression
+    }
+
+    show() {
+        push();
+        translate(this.x, this.y);
+        rotate(atan2(this.vy, this.vx) + HALF_PI); // Rotate towards direction of movement
+
+        noStroke();
+        // Main body (spiky/angular)
+        fill(this.color);
+        beginShape();
+        vertex(0, -this.r * 1.5); // Top spike
+        vertex(this.r * 0.8, -this.r * 0.5); // Right top
+        vertex(this.r * 1.2, this.r * 0.5); // Right middle spike
+        vertex(this.r * 0.5, this.r * 1.5); // Right bottom
+        vertex(0, this.r * 0.5); // Bottom center (for exhaust)
+        vertex(-this.r * 0.5, this.r * 1.5); // Left bottom
+        vertex(-this.r * 1.2, this.r * 0.5); // Left middle spike
+        vertex(-this.r * 0.8, -this.r * 0.5); // Left top
+        endShape(CLOSE);
+
+        // Glowing exhaust/engine
+        fill(this.accentColor, 180 + sin(frameCount * 0.2) * 70); // Pulsating glow
+        ellipse(0, this.r * 0.8, this.r * 0.8, this.r * 0.5);
+
+        // Small eye/sensor
+        fill(0, 255, 255); // Cyan
+        ellipse(0, -this.r * 0.8, this.r * 0.3); 
+
+        pop();
+    }
+
+    update() {
+        // Apply Perlin noise for organic movement/drifting
+        let noiseX = map(noise(this.noiseOffset + frameCount * 0.005), 0, 1, -this.thrustForce, this.thrustForce);
+        let noiseY = map(noise(this.noiseOffset + 1000 + frameCount * 0.005), 0, 1, -this.thrustForce, this.thrustForce);
+
+        this.vx += noiseX;
+        this.vy += noiseY;
+
+        // Optional: a slight pull towards the player's X to make them somewhat converge
+        let targetDirX = player.x - this.x;
+        if (abs(targetDirX) > 50) { // Only steer if player is far enough
+            this.vx += (targetDirX > 0 ? 0.05 : -0.05);
+        }
+
+        // Limit speed
+        this.vx = constrain(this.vx, -this.maxSpeed, this.maxSpeed);
+        this.vy = constrain(this.vy, -this.maxSpeed, this.maxSpeed);
+
+        this.x += this.vx;
+        this.y += this.vy;
+
+        // Boundary collision (bounce)
+        if (this.x - this.r < 0 || this.x + this.r > width) {
+            this.vx *= -1;
+            this.x = constrain(this.x, this.r, width - this.r); // Snap back
+        }
+        if (this.y - this.r < 0 || this.y + this.r > height * 0.8) { // Confine to top 80% of screen to not sit on player
+            this.vy *= -1;
+            this.y = constrain(this.y, this.r, height * 0.8 - this.r); // Snap back
+        }
+
+        // Shooting logic
+        this.shootTimer++;
+        // Only shoot if within vertical range where player can be hit and not too close to edges
+        if (this.shootTimer >= this.shootInterval && this.y > 100 && this.y < height * 0.7 && 
+            this.x > this.r * 2 && this.x < width - this.r * 2) {
+            enemyBullets.push(new Bullet(this.x, this.y + this.r, false)); // Shoot downwards
+            // Removed sound
+        }
+    }
+}
+
+
+class BossWeakpoint { // New class for Boss Weakpoints for clearer logic
+  constructor(x, y, r, displayedBooleanValue) {
+    this.x = x;
+    this.y = y;
+    this.r = r;
+    this.displayedBooleanValue = displayedBooleanValue;
+    this.isCorrectChoiceForQuestion = false; // Set externally by Boss or setupLevel
+  }
+
+  show() {
+    fill(this.displayedBooleanValue ? color(0, 200, 100) : color(200, 50, 50));
+    stroke(255);
+    strokeWeight(2);
+    ellipse(this.x, this.y, this.r * 2);
+    fill(255);
+    textAlign(CENTER, CENTER);
+    textSize(16);
+    text(this.displayedBooleanValue ? 'TRUE' : 'FALSE', this.x, this.y);
+  }
+}
+
+// Re-adjust Boss constructor to use BossWeakpoint class
+class Boss {
+  constructor() {
+    this.initialX = width / 2; // Boss starts centered
+    this.x = this.initialX; // Current X, will oscillate
+    this.y = 150;
+    this.r = 60; // Collision radius, will encompass the new shape
+    this.maxHp = 5 + floor(level / 5) * 2;
+    this.hp = this.maxHp;
+    this.shootInterval = 150 - (level * 2); // Adjusted for more intense shooting
+    this.shootTimer = 0;
+
+    // Boss movement properties
+    this.oscillationAmplitude = map(level, 1, 20, width * 0.05, width * 0.15, true); // Small side-to-side
+    this.oscillationFrequency = map(level, 1, 20, 0.005, 0.015, true); // Slow to moderate oscillation
+
+    // Create weakpoints with their displayed value (TRUE/FALSE)
+    this.weakpoints = [
+        new BossWeakpoint(this.x - 70, this.y + 20, 25, true), // This will always be the 'TRUE' weakpoint
+        new BossWeakpoint(this.x + 70, this.y + 20, 25, false) // This will always be the 'FALSE' weakpoint
+    ];
+    // Removed this.swapInterval and this.swapTimer as they are no longer needed for fixed weakpoints
+  }
+
+  show() {
+    push();
+    noStroke();
+    rectMode(CENTER);
+    ellipseMode(CENTER);
+
+    // --- Main Body (Dark Purple/Gray) ---
+    fill(50, 20, 70); // Dark purple-gray
+    beginShape();
+    vertex(this.x, this.y - 40); // Top tip (Nose)
+    vertex(this.x + 60, this.y); // Right mid
+    vertex(this.x + 80, this.y + 40); // Right rear corner
+    vertex(this.x, this.y + 50); // Bottom center (Tail)
+    vertex(this.x - 80, this.y + 40); // Left rear corner
+    vertex(this.x - 60, this.y); // Left mid
+    endShape(CLOSE);
+
+    // --- Front Point / Nose Detail ---
+    fill(70, 30, 90); // Slightly lighter purple-gray
+    triangle(this.x, this.y - 40, this.x - 20, this.y - 10, this.x + 20, this.y - 10);
+
+    // --- Side Wings (more angular) ---
+    fill(40, 15, 60); // Even darker purple-gray for depth
+    // Left Wing
+    beginShape();
+    vertex(this.x - 60, this.y);
+    vertex(this.x - 120, this.y - 10); // Outer tip
+    vertex(this.x - 80, this.y + 40);
+    endShape(CLOSE);
+    // Right Wing
+    beginShape();
+    vertex(this.x + 60, this.y);
+    vertex(this.x + 120, this.y - 10); // Outer tip
+    vertex(this.x + 80, this.y + 40);
+    endShape(CLOSE);
+    
+    // --- Engine Glow / Ports (Red) ---
+    fill(255, 50, 0, 200); // Bright red-orange with some transparency
+    ellipse(this.x - 50, this.y + 45, 15, 10); // Left engine
+    ellipse(this.x + 50, this.y + 45, 15, 10); // Right engine
+
+    // --- Outline for the whole spaceship ---
+    stroke(255, 200); // White outline, slightly transparent
+    strokeWeight(2);
+    beginShape();
+    vertex(this.x, this.y - 40); // Top tip
+    vertex(this.x + 60, this.y); // Right mid
+    vertex(this.x + 120, this.y - 10); // Right outer tip
+    vertex(this.x + 80, this.y + 40);
+    vertex(this.x + 50, this.y + 50);
+    vertex(this.x, this.y + 50);
+    vertex(this.x - 50, this.y + 50);
+    vertex(this.x - 80, this.y + 40);
+    vertex(this.x - 120, this.y - 10);
+    vertex(this.x - 60, this.y);
+    endShape(CLOSE);
+    pop();
+
+    // Weakpoints
+    this.weakpoints.forEach(wp => {
+      // Adjust weakpoint positions based on boss's current X
+      wp.x = this.x + (wp.displayedBooleanValue ? -70 : 70); // Keep them relative to boss center
+      wp.y = this.y + 20; // Keep their Y constant relative to boss body
+      wp.show();
+    });
+
+    // Health Bar
+    let barWidth = width * 0.6;
+    let barX = width * 0.2;
+    let barY = 100;
+    noStroke();
+    fill(50);
+    rect(barX, barY, barWidth, 20);
+    fill(255, 0, 0);
+    rect(barX, barY, barWidth * (this.hp / this.maxHp), 20);
+    fill(255);
+    textSize(14);
+    textAlign(CENTER, CENTER);
+    text('BOSS HP', width/2, barY + 10);
+  }
+
+  update() {
+    // Horizontal movement
+    this.x = this.initialX + sin(frameCount * this.oscillationFrequency) * this.oscillationAmplitude;
+    
+    this.shootTimer++;
+    if (this.shootTimer >= this.shootInterval) {
+      this.shoot();
+      this.shootTimer = 0;
+    }
+    // Removed swapTimer logic since weakpoints are fixed
+  }
+
+  // Removed swapCorrectWeakpoint function
+  
+  shoot() {
+      enemyBullets.push(new Bullet(this.x - 30, this.y + this.r, false));
+      enemyBullets.push(new Bullet(this.x, this.y + this.r, false));
+      enemyBullets.push(new Bullet(this.x + 30, this.y + this.r, false));
+      // Removed sound
+  }
+
+  takeDamage() {
+    this.hp--;
+  }
+}
+
+class Heart {
+    constructor(x, y, isSpecialHeart = false) { // Added isSpecialHeart flag
+        this.x = x;
+        this.y = y;
+        this.r = isSpecialHeart ? 40 : 20; // Larger radius for special hearts
+        this.speed = 2;
+        this.alpha = 255;
+        this.alphaDir = -5;
+        this.isSpecialHeart = isSpecialHeart; // Store the flag
+    }
+
+    show() {
+        this.alpha += this.alphaDir;
+        if (this.alpha < 100 || this.alpha < 200 && this.alphaDir < 0) { // Keep special hearts more visible
+            if (this.isSpecialHeart) {
+                this.alpha = 200; // Cap minimum alpha for special hearts
+            }
+        }
+        if (this.alpha > 255 || this.alpha < 100) {
+            this.alphaDir *= -1;
+        }
+        fill(255, 0, 0, this.alpha);
+        noStroke();
+        textSize(this.r * 2); // Text size scales with radius
+        textAlign(CENTER, CENTER);
+        text('❤', this.x, this.y);
+    }
+
+    move() {
+        this.y += this.speed;
+    }
+
+    hits(target) { // Renamed to 'target' to be generic for bullet or player
+       let d = dist(this.x, this.y, target.x, target.y);
+       // For player, consider its rectangle. For bullet, use radius.
+       if (target instanceof Player) {
+         return (this.x > target.x - target.width/2 && this.x < target.x + target.width/2 && this.y > target.y && this.y < target.y + target.height);
+       } else { // Assume bullet
+         return d < this.r + target.r; 
+       }
+    }
+}
+
+// Preload function removed as no sounds are loaded
+
+function setup() {
+  createCanvas(windowWidth, windowHeight); // Initialize canvas first
+  player = new Player(); // Player can now safely use width/height
+
+  // Removed sound initialization/volume settings
+
+
+  // Initialize stars
+  for (let i = 0; i < NUM_STARS; i++) {
+    stars.push(new Star());
+  }
+
+  shuffledQuestions = [...questions];
+  shuffleArray(shuffledQuestions);
+
+  shuffledBossQuestions = [...bossQuestions];
+  shuffleArray(shuffledBossQuestions);
+
+  // Set initial state for start screen animation
+  // Start bullet slightly above the static cannon's barrel tip, to make it appear from the barrel
+  // These are initial global values, actual dynamic calculation happens in displayStartScreen
+  const tempCannonY_startScreen = height * 0.75; 
+  const tempCannonHeight = 70;
+  const tempBarrelLength = tempCannonHeight * 0.4;
+  const tempBodyHeight = tempCannonHeight * 0.35;
+  const tempBaseHeight = tempCannonHeight * 0.25;
+  const tempBaseTopY = tempCannonY_startScreen + tempCannonHeight * 0.5 - tempBaseHeight;
+  const tempBodyTopY = tempBaseTopY - tempBodyHeight;
+  const tempBarrelTopY = tempBodyTopY - tempBarrelLength;
+  startScreenBulletX = width / 2; // Initial global value
+  startScreenBulletY = tempBarrelTopY; // Initial global value
+  
+  startScreenExplosionAnimFrame = 0; // Reset explosion
+
+  // setupLevel() is not called immediately to start game, it's called after intro
+}
+
+function draw() {
+    if (gameState === 'startScreen') {
+        displayStartScreen();
+    } else if (gameState === 'introScroll') {
+        displayIntroScroll();
+    } else if (gameState === 'bossPreFight') { // NEW: Boss pre-fight screen
+        displayBossPreFight();
+    } else if (gameState === 'bossCongratulations') { // Handles boss defeat celebration
+        displayBossCongratulations();
+    }
+    else if (gameState === 'playing') {
+        background(20, 20, 40); // Dark space background
+
+        // Draw stars before other elements
+        for (let star of stars) {
+            star.show();
+        }
+        
+        // Update and draw explosions
+        for (let i = explosions.length - 1; i >= 0; i--) {
+            explosions[i].update();
+            explosions[i].show();
+            if (explosions[i].isDead()) {
+                explosions.splice(i, 1);
+            }
+        }
+
+        player.show();
+        player.move();
+
+        // Safety check: Ensure currentQuestion is valid before trying to display its text
+        if (currentQuestion && currentQuestion.text) {
+            displayUI();
+        } else {
+            fill(255, 0, 0);
+            textAlign(CENTER, CENTER);
+            textSize(30);
+            text("Error: Question missing! Check console.", width/2, height/2);
+            console.error("currentQuestion or its text is null/undefined in draw() 'playing' state!", currentQuestion);
+        }
+
+        let timeElapsed = millis() - levelStartTime;
+
+        if (timeElapsed < countdownDuration) {
+            // Display countdown
+            let timeLeft = ceil((countdownDuration - timeElapsed) / 1000); // Convert to seconds, round up
+            push();
+            textAlign(CENTER, CENTER);
+            textSize(100);
+            fill(255, 255, 0); // Yellow color for countdown
+            text(timeLeft, width / 2, height / 2);
+            pop();
+
+            // Do NOT update/draw enemies or enemy bullets, or process player bullets yet
+            // Player can still move and shoot, but bullets will just fly
+            // (player.move() and player.shoot() are called before this block)
+        } else {
+            // Normal gameplay logic (enemies move, shoot, bullets are processed)
+
+            // 1. Update and show all enemy types (Invaders, Boss, BossMinions)
+            // Also let them shoot
+            if (level % 5 === 0) { // Boss Level
+                if (boss) {
+                    boss.show();
+                    boss.update();
+                }
+                for (let i = bossMinions.length - 1; i >= 0; i--) {
+                    bossMinions[i].show();
+                    bossMinions[i].update();
+                }
+            } else { // Normal Level
+                for (let i = invaders.length - 1; i >= 0; i--) {
+                    invaders[i].show();
+                    invaders[i].update();
+                }
+            }
+            
+            // 2. Update and show enemy bullets (and check collision with player)
+            for (let i = enemyBullets.length - 1; i >= 0; i--) {
+                enemyBullets[i].show();
+                enemyBullets[i].move();
+                if (enemyBullets[i].hits(player)) {
+                    lives--;
+                    createExplosion(enemyBullets[i].x, enemyBullets[i].y, color(255, 100, 100));
+                    enemyBullets.splice(i, 1);
+                    if (lives <= 0) { gameState = 'gameOver'; }
+                    i--;
+                    continue;
+                }
+                if (enemyBullets[i].offscreen()) {
+                    enemyBullets.splice(i, 1);
+                    i--;
+                }
+            }
+        } // End of if/else for countdown
+
+        // Hearts are always active (can be collected during countdown if they drift down)
+        for (let i = hearts.length - 1; i >= 0; i--) {
+            hearts[i].show();
+            hearts[i].move();
+            if(hearts[i].hits(player)) { // Player touching heart
+                if (hearts[i].isSpecialHeart) {
+                    lives = 3; // Special heart restores to 3 lives
+                } else {
+                    lives = min(maxLives, lives + 1); // Regular heart adds 1 life
+                }
+                hearts.splice(i, 1);
+                continue;
+            }
+            if(hearts[i].y > height) { // Heart offscreen
+                hearts.splice(i, 1);
+            }
+        }
+
+        // Player bullets are processed if countdown is over
+        if (timeElapsed >= countdownDuration) {
+            // Handle Player Bullets and ALL their collisions in one sweep
+            for (let i = bullets.length - 1; i >= 0; i--) {
+                let bullet = bullets[i];
+                bullet.show(); // Bullet always shown after countdown
+                bullet.move(); // Bullet always moves after countdown
+
+                if (bullet.offscreen()) {
+                    bullets.splice(i, 1);
+                    continue; // Bullet removed, move to next
+                }
+
+                let bulletRemoved = false; // Flag to indicate if current bullet was removed
+
+                // Check collision with hearts (this logic is fine, if bullet hits heart, it's removed and we continue)
+                for (let j = hearts.length - 1; j >= 0; j--) {
+                    if (bullet.hits(hearts[j])) {
+                        if (hearts[j].isSpecialHeart) {
+                            lives = 3; // Special heart restores to 3 lives
+                        } else {
+                            lives = min(maxLives, lives + 1); // Regular heart adds 1 life
+                        }
+                        hearts.splice(j, 1);
+                        bullets.splice(i, 1); // Remove bullet
+                        bulletRemoved = true;
+                        break; // Heart and bullet gone, no more checks for this bullet
+                    }
+                }
+                if (bulletRemoved) continue;
+
+                // Check collision with enemies (Invaders or Boss/Minions)
+                if (level % 5 === 0) { // Boss Level specific collisions
+                    // Check against Boss Weakpoints
+                    if (boss) { // Ensure boss still exists
+                        for (let j = 0; j < boss.weakpoints.length; j++) {
+                            if (bullet.hitsWeakpoint(boss.weakpoints[j])) {
+                                lastAnswerWasCorrect = boss.weakpoints[j].isCorrectChoiceForQuestion;
+
+                                if (boss.weakpoints[j].isCorrectChoiceForQuestion) {
+                                    boss.takeDamage();
+                                    createExplosion(boss.weakpoints[j].x, boss.weakpoints[j].y, color(0, 255, 0)); // Green for correct
+
+                                    // If boss is defeated by this hit, transition state
+                                    if (boss.hp <= 0) {
+                                        score += 50;
+                                        level++; // Level increments here, this is important for new level setup later
+
+                                        // Always drop a special heart when boss is defeated
+                                        hearts.push(new Heart(boss.x, boss.y, true)); // True for special heart
+                                        createExplosion(boss.x, boss.y, color(100, 50, 150));
+                                        
+                                        // Transition to Boss Congratulations state
+                                        gameState = 'bossCongratulations';
+                                        
+                                        // Clear boss and minions immediately
+                                        boss = null;
+                                        bossMinions = [];
+                                        enemyBullets = []; // Clear any remaining enemy bullets
+                                        bullets = []; // Also clear player bullets to prevent unintended hits during animation
+                                        
+                                        return; // Exit draw loop immediately
+                                    } else {
+                                        // Boss is damaged but not defeated, get new question
+                                        currentQuestion = shuffledBossQuestions.pop();
+                                        if (!currentQuestion) {
+                                            shuffledBossQuestions = [...bossQuestions];
+                                            shuffleArray(shuffledBossQuestions);
+                                            currentQuestion = shuffledBossQuestions.pop();
+                                        }
+                                        // Set correctness for the NEW question (weakpoints are fixed, so only apply question answer)
+                                        boss.weakpoints[0].isCorrectChoiceForQuestion = (boss.weakpoints[0].displayedBooleanValue === currentQuestion.answer);
+                                        boss.weakpoints[1].isCorrectChoiceForQuestion = (boss.weakpoints[1].displayedBooleanValue === currentQuestion.answer);
+                                    }
+                                } else { // Wrong choice, spawn minions, question remains the same
+                                    let spawnCount = 1; // Always 1 minion
+                                    for (let k = 0; k < spawnCount; k++) {
+                                        // Spawn minions slightly offset from boss center to avoid stacking
+                                        let spawnX = boss.x + random(-40, 40);
+                                        let spawnY = boss.y + boss.r; 
+                                        bossMinions.push(new BossMinion(spawnX, spawnY));
+                                    }
+                                    createExplosion(bullet.x, bullet.y, color(255, 0, 0)); // Red for wrong hit
+                                    // Question does NOT change on wrong hit
+                                }
+                                bullets.splice(i, 1); // Bullet consumed on any weakpoint hit
+                                bulletRemoved = true;
+                                break; // Weakpoint hit, move to next bullet
+                            }
+                        }
+                    }
+                    if (bulletRemoved) continue; // If bullet hit weakpoint (or heart), it's gone.
+
+                    // Check against Boss body (no damage, but bullet disappears)
+                    if (boss && bullet.hits(boss)) {
+                        createExplosion(bullet.x, bullet.y, color(50, 20, 70)); // Dark explosion
+                        bullets.splice(i, 1);
+                        bulletRemoved = true;
+                    }
+                    if (bulletRemoved) continue;
+
+                    // Check against Boss Minions
+                    for (let j = bossMinions.length - 1; j >= 0; j--) {
+                        if (bullet.hits(bossMinions[j])) {
+                            createExplosion(bossMinions[j].x, bossMinions[j].y, color(150, 50, 200));
+                            bossMinions.splice(j, 1);
+                            bullets.splice(i, 1);
+                            score += 5;
+                            bulletRemoved = true;
+                            break;
+                        }
+                    }
+                    if (bulletRemoved) continue;
+
+                } else { // Normal Level specific collisions (Invaders)
+                    for (let j = invaders.length - 1; j >= 0; j--) {
+                        if (bullet.hits(invaders[j])) {
+                            lastAnswerWasCorrect = invaders[j].isCorrectChoiceForQuestion;
+
+                            if (invaders[j].isCorrectChoiceForQuestion) {
+                                if (invaders[j].takeDamage()) { // If destroyed
+                                    score += 10;
+                                    level++;
+                                    // Only drop regular hearts on normal level completion (not boss defeat)
+                                    if (level % 4 === 0 && level % 5 !== 0) { 
+                                        hearts.push(new Heart(invaders[j].x, invaders[j].y));
+                                    }
+                                    createExplosion(invaders[j].x, invaders[j].y, invaders[j].color);
+                                    questionForExplanation = currentQuestion;
+                                    gameState = 'explanation';
+                                    invaders = [];
+                                    bullets = [];
+                                    enemyBullets = [];
+                                    return; // Crucial: Exit draw loop
+                                }
+                            } else { // Wrong choice
+                                lives--;
+                                createExplosion(invaders[j].x, invaders[j].y, invaders[j].color);
+                                if (lives <= 0) { gameState = 'gameOver'; return; }
+                                invaders.splice(j, 1); // Remove wrong invader
+                            }
+                            bullets.splice(i, 1);
+                            bulletRemoved = true;
+                            break; // Bullet removed
+                        }
+                    }
+                    if (bulletRemoved) continue;
+                }
+            }
+        } // End of if for bullet processing (only if countdown is over)
+
+    } else if (gameState === 'explanation') {
+        displayExplanation();
+    }
+    else if (gameState === 'gameOver') {
+        displayGameOver();
+    }
+}
+
+// NEW: Function to handle the boss pre-fight screen
+function displayBossPreFight() {
+    background(20, 20, 40); // Dark space background
+    for (let star of stars) {
+        star.show();
+    }
+
+    // Draw Earth
+    push();
+    noStroke();
+    fill(50, 150, 200); // Blue for water
+    ellipse(width / 2, height + 100, width * 1.5, width * 0.8); // Large oval for Earth, partly off-screen
+    fill(50, 200, 100); // Green for land
+    ellipse(width / 2 - 100, height + 50, width * 0.6, height * 0.3); // Landmass 1
+    ellipse(width / 2 + 150, height + 80, width * 0.4, height * 0.2); // Landmass 2
+    pop();
+
+    // Draw Player Cannon (static)
+    // Reusing player class logic for consistent appearance, but as a static graphic
+    const pWidth = 100;
+    const pHeight = 70;
+    const cannonX = width / 2;
+    const cannonY = height - pHeight; 
+    
+    push();
+    noStroke();
+    rectMode(CENTER);
+    ellipseMode(CENTER);
+
+    fill(30, 30, 100); // baseColor
+    beginShape();
+    vertex(cannonX - pWidth / 2, height);
+    vertex(cannonX + pWidth / 2, height);
+    vertex(cannonX + pWidth * 0.7 / 2, cannonY + pHeight * 0.75);
+    vertex(cannonX - pWidth * 0.7 / 2, cannonY + pHeight * 0.75);
+    endShape(CLOSE);
+
+    fill(60, 60, 180); // bodyColor
+    rect(cannonX, cannonY + pHeight * 0.475, pWidth * 0.6, pHeight * 0.35);
+
+    fill(100, 100, 250); // barrelColor
+    beginShape();
+    vertex(cannonX - pWidth * 0.6 * 0.5 / 2, cannonY + pHeight * 0.35);
+    vertex(cannonX + pWidth * 0.6 * 0.5 / 2, cannonY + pHeight * 0.35);
+    vertex(cannonX + pWidth * 0.6 * 0.7 / 2, cannonY);
+    vertex(cannonX - pWidth * 0.6 * 0.7 / 2, cannonY);
+    endShape(CLOSE);
+
+    fill(50, 200, 255, 150); // glowColor
+    ellipse(cannonX, cannonY + pHeight * 0.3 * 0.7, pWidth * 0.6 * 0.2 * 2, pWidth * 0.6 * 0.2 * 0.8);
+    fill(10, 10, 30);
+    ellipse(cannonX, cannonY, pWidth * 0.6 * 0.7 * 0.8, pWidth * 0.6 * 0.7 * 0.3);
+    pop();
+
+
+    // Draw Boss (looming, largely off-screen or faded)
+    // Reusing Boss class structure for consistent look
+    push();
+    translate(width / 2, -100); // Position slightly above top of screen
+    scale(1.5); // Make it loom larger
+    noStroke();
+    rectMode(CENTER);
+    ellipseMode(CENTER);
+
+    let bossColor = color(50, 20, 70, 180); // Dark purple-gray, semi-transparent
+    let accentColor = color(255, 50, 0, 150); // Red-orange, semi-transparent
+
+    fill(bossColor);
+    beginShape();
+    vertex(0, -40); // Top tip (Nose)
+    vertex(60, 0);
+    vertex(80, 40);
+    vertex(0, 50);
+    vertex(-80, 40);
+    vertex(-60, 0);
+    endShape(CLOSE);
+
+    fill(accentColor); // Engine Glow / Ports
+    ellipse(-50, 45, 15, 10); // Left engine
+    ellipse(50, 45, 15, 10); // Right engine
+
+    stroke(255, 100); // Faded white outline
+    strokeWeight(2);
+    beginShape();
+    vertex(0, -40);
+    vertex(60, 0);
+    vertex(120, -10);
+    vertex(80, 40);
+    vertex(50, 50);
+    vertex(0, 50);
+    vertex(-50, 50);
+    vertex(-80, 40);
+    vertex(-120, -10);
+    vertex(-60, 0);
+    endShape(CLOSE);
+    pop();
+
+    // Heading "BOSS LEVEL"
+    fill(255, 0, 0); // Red for emphasis
+    textAlign(CENTER, CENTER);
+    textSize(80);
+    text("BOSS LEVEL", width / 2, height * 0.2);
+
+    // Prompt to continue
+    fill(255, 255, 0, 150 + sin(frameCount * 0.1) * 100); // Pulsating yellow
+    textSize(36);
+    text("Press SPACE to Continue", width / 2, height * 0.85);
+}
+
+
+// Function to handle the boss congratulations state
+function displayBossCongratulations() {
+    background(20, 20, 40); // Dark space background
+    for (let star of stars) {
+        star.show();
+    }
+
+    // Update and draw explosions (from boss defeat)
+    for (let i = explosions.length - 1; i >= 0; i--) {
+        explosions[i].update();
+        explosions[i].show();
+        if (explosions[i].isDead()) {
+            explosions.splice(i, 1);
+        }
+    }
+
+    player.show();
+    player.move(); // Allow player to move to collect heart
+
+    // Update and show hearts (the special heart)
+    for (let i = hearts.length - 1; i >= 0; i--) {
+        let heart = hearts[i];
+        heart.show();
+        heart.move();
+
+        // Check if player collects heart
+        if(heart.hits(player)) {
+            if (heart.isSpecialHeart) {
+                lives = 3; // Special heart restores to 3 lives
+            } else {
+                lives = min(maxLives, lives + 1); // Should not happen here
+            }
+            hearts.splice(i, 1);
+            continue;
+        }
+
+        // Check if heart goes offscreen (important if not collected)
+        if(heart.y > height) {
+            hearts.splice(i, 1);
+        }
+    }
+
+    // Handle player bullets during this state - they can collect heart
+    for (let i = bullets.length - 1; i >= 0; i--) {
+        let bullet = bullets[i];
+        bullet.show();
+        bullet.move();
+
+        if (bullet.offscreen()) {
+            bullets.splice(i, 1);
+            continue;
+        }
+
+        for (let j = hearts.length - 1; j >= 0; j--) {
+            if (bullet.hits(hearts[j])) {
+                if (hearts[j].isSpecialHeart) {
+                    lives = 3;
+                } else {
+                    lives = min(maxLives, lives + 1);
+                }
+                hearts.splice(j, 1);
+                bullets.splice(i, 1);
+                i--; // Decrement i as bullet was removed
+                break; // Heart and bullet gone
+            }
+        }
+    }
+    
+    // Display UI (score, lives)
+    displayUI();
+
+    // Display Congratulations message and score breakdown
+    push();
+    textAlign(CENTER, CENTER);
+    fill(255, 255, 0); // Yellow
+    textSize(60);
+    text("CONGRATULATIONS!", width / 2, height * 0.3);
+
+    fill(255); // White
+    textSize(32);
+    text("Boss Defeated!", width / 2, height * 0.4);
+    textSize(28);
+    text("Current Score: " + score, width / 2, height * 0.5);
+
+    // Prompt to continue
+    fill(255, 255, 0, 150 + sin(frameCount * 0.1) * 100); // Pulsating yellow
+    textSize(28);
+    text("Press SPACE to Continue to Next Level", width / 2, height * 0.8);
+    pop();
+}
+
+
+function keyPressed() {
+  if (keyCode === 32 /* space */) { // Space key common for starting and continuing
+    if (gameState === 'startScreen') {
+      gameState = 'introScroll';
+      introScrollY = height + INTRO_TEXT_START_OFFSET_Y; // Reset scroll for new intro
+    } else if (gameState === 'introScroll') {
+      // Skip intro and start game
+      setupLevel(); // Initialize game for level 1 (which will set playing or bossPreFight)
+    } else if (gameState === 'playing') {
+      // Only allow shooting if the countdown is over
+      if (millis() - levelStartTime >= countdownDuration) {
+          player.shoot();
+      }
+    } else if (gameState === 'explanation') {
+      // Advance to next level after explanation
+      setupLevel(); // Setup the NEXT level (which will be 'playing' or 'bossPreFight')
+    } else if (gameState === 'bossCongratulations') { // Handle space press on congratulations screen
+        setupLevel(); // Setup the NEXT level
+    } else if (gameState === 'bossPreFight') { // Handle space press on pre-fight screen
+        gameState = 'playing'; // Transition to playing
+        levelStartTime = millis(); // Start the countdown for the actual fight
+    }
+  }
+  if (gameState === 'gameOver' && key === 'r') {
+    resetGame();
+  }
+}
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+  player = new Player(); // Re-initialize player to update its dimensions and position
+  
+  // Re-initialize stars to fill new canvas dimensions
+  stars = [];
+  for (let i = 0; i < NUM_STARS; i++) {
+    stars.push(new Star());
+  }
+
+  // Reset start screen animation on resize to prevent weird states
+  // Recalculate startScreenBulletY based on new height
+  const tempCannonY_startScreen = height * 0.75; 
+  const tempCannonHeight = 70;
+  const tempBarrelLength = tempCannonHeight * 0.4;
+  const tempBodyHeight = tempCannonHeight * 0.35;
+  const tempBaseHeight = tempCannonHeight * 0.25;
+  const tempBaseTopY = tempCannonY_startScreen + tempCannonHeight * 0.5 - tempBaseHeight;
+  const tempBodyTopY = tempBaseTopY - tempBodyHeight;
+  const tempBarrelTopY = tempBodyTopY - tempBarrelLength;
+  startScreenBulletX = width / 2; 
+  startScreenBulletY = tempBarrelTopY; // Ensure this matches the *current* canvas size
+  
+  startScreenExplosionAnimFrame = 0;
+}
+
+function setupLevel() {
+  bullets = [];
+  invaders = [];
+  boss = null;
+  hearts = [];
+  enemyBullets = [];
+  explosions = []; // Clear explosions on new level setup
+  bossMinions = []; // NEW: Clear boss minions on new level setup
+  
+  // levelStartTime is set *only* when transitioning to 'playing' state, not here.
+
+  if (level % 5 === 0) {
+    // Boss Level
+    currentQuestion = shuffledBossQuestions.pop();
+    if (!currentQuestion) { // Reshuffle if empty
+        shuffledBossQuestions = [...bossQuestions];
+        shuffleArray(shuffledBossQuestions);
+        currentQuestion = shuffledBossQuestions.pop();
+    }
+    boss = new Boss();
+
+    // Assign which weakpoint is the correct choice based on the current question's answer
+    boss.weakpoints[0].isCorrectChoiceForQuestion = (boss.weakpoints[0].displayedBooleanValue === currentQuestion.answer);
+    boss.weakpoints[1].isCorrectChoiceForQuestion = (boss.weakpoints[1].displayedBooleanValue === currentQuestion.answer);
+
+    gameState = 'bossPreFight'; // Transition to pre-fight screen
+  } else {
+    // Normal Level
+    currentQuestion = shuffledQuestions.pop();
+    if (!currentQuestion) { // Reshuffle if empty
+        shuffledQuestions = [...questions];
+        shuffleArray(shuffledQuestions);
+        currentQuestion = shuffledQuestions.pop();
+    }
+
+    // Create invaders with specific displayed values (TRUE or FALSE)
+    let invaderTrue = new Invader(width * 0.25, 150, true); // This invader will display 'TRUE'
+    let invaderFalse = new Invader(width * 0.75, 150, false); // This invader will display 'FALSE'
+
+    // Now, determine which of these is the correct 'choice' for the question
+    invaderTrue.isCorrectChoiceForQuestion = (invaderTrue.displayedBooleanValue === currentQuestion.answer);
+    invaderFalse.isCorrectChoiceForQuestion = (invaderFalse.displayedBooleanValue === currentQuestion.answer);
+
+    // Add them to the invaders array
+    invaders.push(invaderTrue);
+    invaders.push(invaderFalse);
+
+    // Set phase offsets for their horizontal movement
+    invaders[0].oscillationPhaseOffset = 0;
+    invaders[1].oscillationPhaseOffset = PI;
+    
+    gameState = 'playing'; // For non-boss levels, go straight to playing
+    levelStartTime = millis(); // And start the countdown immediately
+  }
+}
+
+// Removed checkInvaderCollisions and checkBossCollisions as logic consolidated in draw()
+
+function displayUI() {
+  // Question Box
+  fill(0, 0, 0, 150);
+  rect(0, 0, width, 80);
+  fill(255);
+  textAlign(CENTER, CENTER);
+  textSize(18);
+  text(currentQuestion.text, 20, 0, width - 40, 80); 
+
+  // Score, Lives, Level
+  textSize(20);
+  textAlign(LEFT, TOP);
+  let livesText = 'Lives: ' + '❤'.repeat(lives);
+  text('Score: ' + score, 20, height - 40);
+  text(livesText, width / 2 - 50, height - 40);
+  textAlign(RIGHT, TOP);
+  text('Level: ' + level, width - 20, height - 40);
+}
+
+function displayExplanation() {
+  background(0, 0, 0, 200); // Dark semi-transparent overlay
+  fill(255);
+  textAlign(CENTER, CENTER); // Applies to all text calls in this function
+
+  const textPaddingX = 50;
+  const textBoxWidth = width - (textPaddingX * 2);
+
+  let yCursor = height * 0.1; // Starting Y position (vertical center of the first line)
+
+  // 1. Correct/Incorrect feedback
+  const feedbackTextSize = 40;
+  textSize(feedbackTextSize);
+  if (lastAnswerWasCorrect) {
+    fill(0, 255, 0); // Green for correct
+    text("CORRECT!", width / 2, yCursor);
+  } else {
+    fill(255, 50, 50); // Red for incorrect
+    text("INCORRECT!", width / 2, yCursor);
+  }
+  yCursor += feedbackTextSize / 2 + 30; // Move cursor down past this line + padding
+
+  // 2. Question Header
+  const qHeaderTextSize = 28;
+  fill(255); // Reset color to white
+  textSize(qHeaderTextSize);
+  text("Question:", width / 2, yCursor + qHeaderTextSize / 2); // Position header, then move cursor past it
+  yCursor += qHeaderTextSize + 15; // Move cursor down past this line + padding
+
+  // 3. Question Text
+  const qTextSize = 22;
+  const qTextHeight = 80; // Fixed height for question text box
+  textSize(qTextSize);
+  text(questionForExplanation.text, textPaddingX, yCursor, textBoxWidth, qTextHeight);
+  yCursor += qTextHeight + 30; // Move cursor down past this text block + padding
+
+  // 4. Explanation Header
+  const expHeaderTextSize = 28;
+  textSize(expHeaderTextSize);
+  text("Explanation:", width / 2, yCursor + expHeaderTextSize / 2); // Position header, then move cursor past it
+  yCursor += expHeaderTextSize + 15; // Move cursor down past this line + padding
+
+  // 5. Explanation Text
+  const expTextSize = 18;
+  const expTextHeight = 150; // Fixed height for explanation text box
+  textSize(expTextSize);
+  text(questionForExplanation.explanation, textPaddingX, yCursor, textBoxWidth, expTextHeight);
+  yCursor += expTextHeight + 30; // Move cursor down past this text block + padding
+
+  // 6. Instruction to continue
+  const continueTextSize = 24;
+  const continueBottomMargin = 50; // Desired margin from bottom of screen for "Press SPACE"
+  textSize(continueTextSize);
+  fill(255, 255, 0); // Yellow for emphasis
+
+  // Calculate the desired Y if placed at the bottom margin (center of text)
+  let targetBottomY = height - continueBottomMargin; 
+
+  // Calculate the minimum Y needed to clear the explanation text (center of text)
+  // yCursor is currently the BOTTOM of the explanation text box.
+  // We need to add a gap, then half the height of the "Press SPACE" text.
+  let minClearanceY = yCursor + 20 + (continueTextSize / 2); // 20px gap + half text height
+
+  // Choose the greater of the two Y values for the final vertical center position
+  let finalContinueY = max(targetBottomY, minClearanceY);
+  
+  text('Press SPACE to Continue to Next Level', width / 2, finalContinueY);
+}
+
+
+function displayGameOver() {
+  background(0, 150);
+  fill(255);
+  textAlign(CENTER, CENTER);
+  textSize(64);
+  text('GAME OVER', width / 2, height / 2 - 40);
+  textSize(32);
+  text('Final Score: ' + score, width / 2, height / 2 + 20);
+  textSize(24);
+  text('Press "R" to Restart', width / 2, height / 2 + 70);
+}
+
+function resetGame() {
+  score = 0;
+  lives = 3;
+  level = 1;
+  bullets = [];
+  invaders = [];
+  enemyBullets = [];
+  hearts = [];
+  explosions = []; // Clear explosions
+  boss = null;
+  bossMinions = []; // NEW: Clear boss minions on reset
+  questionForExplanation = null;
+  lastAnswerWasCorrect = false;
+
+  shuffledQuestions = [...questions];
+  shuffleArray(shuffledQuestions);
+  shuffledBossQuestions = [...bossQuestions];
+  shuffleArray(shuffledBossQuestions);
+
+  gameState = 'startScreen'; // Reset to start screen
+  
+  // Reset start screen animation and intro scroll
+  const tempCannonY_startScreen = height * 0.75; 
+  const tempCannonHeight = 70;
+  const tempBarrelLength = tempCannonHeight * 0.4;
+  const tempBodyHeight = tempCannonHeight * 0.35;
+  const tempBaseHeight = tempCannonHeight * 0.25;
+  const tempBaseTopY = tempCannonY_startScreen + tempCannonHeight * 0.5 - tempBaseHeight;
+  const tempBodyTopY = tempBaseTopY - tempBodyHeight;
+  const tempBarrelTopY = tempBodyTopY - tempBarrelLength;
+  startScreenBulletX = width / 2; 
+  startScreenBulletY = tempBarrelTopY; 
+  
+  startScreenExplosionAnimFrame = 0;
+
+  introScrollY = height + INTRO_TEXT_START_OFFSET_Y; // Reset scroll for new intro
+}
+
+// --- HELPER FOR DRAWING STATIC UFOs ---
+// Used by DriftingBackgroundUFO and displayStartScreen for consistency
+function drawStaticUFO(x, y, displayedBooleanValue, alphaOverride = 255) {
+    push();
+    noStroke();
+    ellipseMode(CENTER);
+
+    let ufoColor = displayedBooleanValue ? color(0, 200, 100, alphaOverride) : color(200, 50, 50, alphaOverride);
+    let ufoBaseR = 30; // Base size for UFO
+
+    // Main UFO body
+    fill(ufoColor);
+    ellipse(x, y + ufoBaseR * 0.2, ufoBaseR * 2.2, ufoBaseR * 1.2); 
+
+    // UFO cockpit / dome 
+    fill(ufoColor.levels[0], ufoColor.levels[1], ufoColor.levels[2], alphaOverride * 0.7); 
+    ellipse(x, y - ufoBaseR * 0.4, ufoBaseR * 1.2, ufoBaseR * 1.0); 
+
+    // Highlight / window on cockpit
+    fill(150, 200, 255, alphaOverride * 0.4); 
+    ellipse(x + ufoBaseR * 0.3, y - ufoBaseR * 0.45, ufoBaseR * 0.6, ufoBaseR * 0.3);
+
+    // Outline for the whole UFO 
+    stroke(255, alphaOverride * 0.8); 
+    strokeWeight(2);
+    ellipse(x, y + ufoBaseR * 0.2, ufoBaseR * 2.2, ufoBaseR * 1.2);
+    ellipse(x, y - ufoBaseR * 0.4, ufoBaseR * 1.2, ufoBaseR * 1.0);
+
+    pop();
+}
+
+// --- NEW FUNCTIONS FOR START SCREEN & INTRO SCROLL ---
+
+function displayStartScreen() {
+  background(20, 20, 40); // Dark space background
+  for (let star of stars) {
+    star.show(); // Show stars in background
+  }
+
+  // --- Game Title ---
+  fill(255, 255, 0); // Yellow
+  textAlign(CENTER, CENTER);
+  textSize(72);
+  text("PROJECT INVADERS", width / 2, height * 0.15); // Title slightly higher
+
+  // --- Static Graphic: Cannon shooting specific UFO ---
+  let cannonX = width / 2;
+  let cannonY = height * 0.75; // Position cannon lower to leave space for controls
+  let ufoTargetX = width / 2;
+  let ufoTargetY = height * 0.35; // Target UFO is in foreground
+
+
+  // Draw static cannon (using Player class logic for consistency)
+  const pWidth = 100;
+  const pHeight = 70;
+  const pBaseHeight = pHeight * 0.25;
+  const pBodyHeight = pHeight * 0.35;
+  const pBarrelLength = pHeight * 0.4;
+
+  const sBaseBottomY = cannonY + pHeight * 0.5; // Adjusted Y for static cannon
+  const sBaseTopY = sBaseBottomY - pBaseHeight;
+  const sBodyTopY = sBaseTopY - pBodyHeight;
+  const sBarrelTopY = sBodyTopY - pBarrelLength; // Cannon barrel tip for bullet origin
+
+  push();
+  noStroke();
+  rectMode(CENTER);
+  ellipseMode(CENTER);
+
+  fill(30, 30, 100); // baseColor
+  beginShape();
+  vertex(cannonX - pWidth / 2, sBaseBottomY);
+  vertex(cannonX + pWidth / 2, sBaseBottomY);
+  vertex(cannonX + pWidth * 0.7 / 2, sBaseTopY);
+  vertex(cannonX - pWidth * 0.7 / 2, sBaseTopY);
+  endShape(CLOSE);
+
+  fill(60, 60, 180); // bodyColor
+  rect(cannonX, sBodyTopY + pBodyHeight / 2, pWidth * 0.6, pBodyHeight);
+
+  fill(100, 100, 250); // barrelColor
+  beginShape();
+  vertex(cannonX - pWidth * 0.6 * 0.5 / 2, sBodyTopY);
+  vertex(cannonX + pWidth * 0.6 * 0.5 / 2, sBodyTopY);
+  vertex(cannonX + pWidth * 0.6 * 0.7 / 2, sBarrelTopY);
+  vertex(cannonX - pWidth * 0.6 * 0.7 / 2, sBarrelTopY);
+  endShape(CLOSE);
+
+  fill(50, 200, 255, 150); // glowColor
+  ellipse(cannonX, sBodyTopY + pBodyHeight * 0.3, pWidth * 0.6 * 0.2 * 2, pWidth * 0.6 * 0.2 * 0.8);
+  fill(10, 10, 30);
+  ellipse(cannonX, sBarrelTopY, pWidth * 0.6 * 0.7 * 0.8, pWidth * 0.6 * 0.7 * 0.3);
+  pop();
+
+
+  // Draw the target UFO (always green, full opacity)
+  drawStaticUFO(ufoTargetX, ufoTargetY, true, 255);
+
+
+  // Animate the bullet and explosion for the static graphic
+  // If no explosion is active, start a new bullet animation cycle
+  if (startScreenExplosionAnimFrame === 0) { 
+      // Ensure bullet starts precisely from the muzzle, dynamically calculated
+      startScreenBulletX = cannonX; 
+      startScreenBulletY = sBarrelTopY; 
+      
+      fill(255, 255, 0); // Yellow bullet
+      noStroke();
+      ellipse(startScreenBulletX, startScreenBulletY, 8 * 2);
+      startScreenBulletY -= 15; // Move bullet up
+
+      if (startScreenBulletY <= ufoTargetY) { // Bullet hit UFO
+        startScreenBulletY = ufoTargetY; // Snap bullet to UFO Y for explosion origin
+        startScreenExplosionAnimFrame = 1; // Start explosion animation
+        // Removed sound
+      }
+  } else {
+    // Explosion state
+    let currentExplosionSize = map(startScreenExplosionAnimFrame, 1, START_EXPLOSION_FRAMES, 0, START_EXPLOSION_MAX_SIZE);
+    let currentExplosionAlpha = map(startScreenExplosionAnimFrame, 1, START_EXPLOSION_FRAMES, 255, 0);
+
+    if (startScreenExplosionAnimFrame <= START_EXPLOSION_FRAMES) {
+      fill(color(0, 200, 100).levels[0], color(0, 200, 100).levels[1], color(0, 200, 100).levels[2], currentExplosionAlpha); // UFO color for explosion
+      ellipse(ufoTargetX, ufoTargetY, currentExplosionSize);
+      fill(255, 200, 50, currentExplosionAlpha); // Orange/yellow glow
+      ellipse(ufoTargetX, ufoTargetY, currentExplosionSize * 0.6);
+      startScreenExplosionAnimFrame++;
+    } else {
+      // Explosion finished, reset animation frame to 0 to restart the bullet sequence
+      startScreenExplosionAnimFrame = 0; 
+    }
+  }
+
+
+  // --- Controls ---
+  fill(255);
+  textSize(24);
+  textAlign(CENTER, TOP); // Centered, aligned to top of text box
+  text("Controls:", width / 2, height * 0.45); // Moved higher
+  textSize(20);
+  text("Move: LEFT/RIGHT ARROWS", width / 2, height * 0.45 + 30); // Relative to Controls header
+  text("Shoot: SPACEBAR", width / 2, height * 0.45 + 60); // Relative to Controls header
+
+  // --- Start Prompt ---
+  fill(255, 255, 0);
+  textSize(36);
+  textAlign(CENTER, BOTTOM); // Centered, aligned to bottom of text box
+  text("PRESS SPACE TO START", width / 2, height - 30);
+}
+
+
+function displayIntroScroll() {
+  background(20, 20, 40); // Dark space background
+  for (let star of stars) {
+    star.show(); // Show stars in background
+  }
+
+  fill(255, 255, 0); // Yellow text for scroll
+  textAlign(CENTER, TOP); // This centers the text WITHIN the bounding box
+
+  // Define padding and calculate text box width
+  const textPaddingX = 50; 
+  const textBoxWidth = width - (textPaddingX * 2);
+
+  // Calculate base line height
+  textSize(24); // Set text size for measuring and drawing
+  const singleLineHeight = textAscent() + textDescent();
+  const lineGap = 10; // Additional spacing between lines/blocks
+
+  // Draw each line of text within the centered bounding box
+  let currentTextY = introScrollY;
+  for (let line of INTRO_TEXT) {
+    // Draw the text, allowing auto-wrapping within textBoxWidth
+    // Do NOT pass a height parameter here, let p5.js determine it
+    text(line, textPaddingX, currentTextY, textBoxWidth);
+    
+    // Dynamically calculate height for the next text block.
+    // This is a simple estimation for multi-line text by counting explicit newlines.
+    // If a line is very long AND has no explicit \n, it will auto-wrap,
+    // but this simple `estimatedHeight` won't be perfectly accurate for auto-wrapped lines.
+    // For this context (short sentences, fixed width), it should prevent clipping.
+    let linesInThisBlock = (line.split('\n') || []).length; // Correctly count lines based on '\n'
+    let estimatedHeight = linesInThisBlock * singleLineHeight + (linesInThisBlock > 1 ? (linesInThisBlock - 1) * 5 : 0) + lineGap;
+    estimatedHeight = max(estimatedHeight, singleLineHeight + lineGap); // Ensure a minimum height for empty or short lines
+
+    currentTextY += estimatedHeight; // Advance Y for the next element
+  }
+
+  // Define the scroll stop point (when the *top* of the text block is at Y = 0)
+  // Re-calculate total height using the same estimation logic
+  let totalContentHeight = 0;
+  for (let line of INTRO_TEXT) {
+    let linesInThisBlock = (line.split('\n') || []).length;
+    let estimatedHeight = linesInThisBlock * singleLineHeight + (linesInThisBlock > 1 ? (linesInThisBlock - 1) * 5 : 0) + lineGap;
+    estimatedHeight = max(estimatedHeight, singleLineHeight + lineGap);
+    totalContentHeight += estimatedHeight;
+  }
+  const scrollStopPoint = 0 - totalContentHeight - 50; // Add a small buffer so it goes fully off
+
+  if (introScrollY > scrollStopPoint) {
+    introScrollY -= INTRO_SCROLL_SPEED;
+  } else {
+      // If scroll finishes, automatically transition to playing state
+      setupLevel(); // This will now set gameState correctly
+      return; // Exit early to prevent drawing issues during transition
+  }
+
+
+  // Draw skip prompt at the bottom
+  fill(255, 255, 255, 150 + sin(frameCount * 0.1) * 100); // Fading white
+  textSize(20);
+  textAlign(CENTER, BOTTOM);
+  text("Press SPACE to Skip", width / 2, height - 20);
+}
+
+  </script>
+</body>
+</html>
