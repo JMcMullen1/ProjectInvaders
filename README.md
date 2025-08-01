@@ -1,5 +1,5 @@
 # 
-# Project Invaders: APM Lifecycle Quiz
+# Project Invaders: Project Lifecycle Quiz
 
 A retro-style space shooter game built with p5.js that tests your knowledge of the APM (Association for Project Management) project lifecycle. This project was built as an interactive and fun way to learn key project management concepts.
 
